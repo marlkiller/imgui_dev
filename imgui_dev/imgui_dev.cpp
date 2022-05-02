@@ -44,30 +44,38 @@ int main(int, char**)
         tools::getGameRect(global::hwndGame,RectGame);
 
         global::hwndCurrent = :: CreateWindowExW(
-            /*WS_EX_TOPMOST |*/ WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/,
+            /*WS_EX_TOPMOST |*/ /*WS_EX_TRANSPARENT|*/ WS_EX_LAYERED ,
             wc.lpszClassName,      // window class name
             _T("ImGui Example"),   // window caption
             WS_POPUP/*WS_OVERLAPPEDWINDOW*/, // window style, WS_POPUP can't show title
             RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, // initial y size
-            NULL, // parent window handle
+            global::hwndGame, // parent window handle
             NULL, // window menu handle
             GetModuleHandle(NULL), // program instance handle
             NULL);
     }
     else {
-        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED,wc.lpszClassName, _T("Dear ImGui DirectX11 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED,wc.lpszClassName, _T("ImGui Example"), WS_POPUP, 100, 100, 500, 500, NULL, NULL, GetModuleHandle(NULL), NULL);
         
     }
 
     //关键色过滤
-    SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0), 255, LWA_ALPHA);
-    //dwm透明特效
-    DWM_BLURBEHIND bb = { 0 };
+    //bAlpha, // 设置透明度，0表示完全透明，255表示不透明
+    /*dwFlags参数可取以下值：
+        LWA_ALPHA时：crKey参数无效，bAlpha参数有效；
+        LWA_COLORKEY：窗体中的所有颜色为crKey的地方将变为透明，bAlpha参数无效。其常量值为1。
+        LWA_ALPHA | LWA_COLORKEY：crKey的地方将变为全透明，而其它地方根据bAlpha参数确定透明度*/
+       
+    SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0),255, LWA_COLORKEY);
+
+
+    //dwm透明特效, 搭配 LWA_ALPHA使用,进行透明后鼠标无法穿透透明部分
+    /*DWM_BLURBEHIND bb = { 0 };
     HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
     bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
     bb.hRgnBlur = hRgn;
     bb.fEnable = TRUE;
-    DwmEnableBlurBehindWindow(global::hwndCurrent, &bb);
+    DwmEnableBlurBehindWindow(global::hwndCurrent, &bb)*/; // 使用DwmEnableBlurBehindWindow进行透明后鼠标无法穿透透明部分
     
 
 
@@ -112,9 +120,9 @@ int main(int, char**)
 
 
     // Setup Dear ImGui style,will be cover the DIY color
-    //ImGui::StyleColorsDark();
+    ImGui::StyleColorsDark();
     //ImGui::StyleColorsClassic();
-    ImGui::StyleColorsLight();
+    //ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(global::hwndCurrent);
@@ -160,7 +168,7 @@ int main(int, char**)
 
         static char* input_1 = NULL;
         static struct ExampleAppLog log;
-
+        static RECT RectGame = { 0 };
 
         if (p_open)
         {
@@ -256,6 +264,13 @@ int main(int, char**)
 
 
             // ImGui::Button("btn4"); // btn will create in new window
+
+            if (global::hwndGame)
+            {
+                tools::getGameRect(global::hwndGame, RectGame); // auto move windows
+                MoveWindow(global::hwndCurrent, RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, true);
+            }
+            
         }
 
         ImDrawList* drawList =ImGui::GetForegroundDrawList();
