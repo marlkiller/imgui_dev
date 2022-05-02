@@ -5,10 +5,11 @@
 #include <tchar.h>
 #include <dwmapi.h>
 #include "tools.h"
+#include "global.h"
 
 
 // hide_out_window
-static bool bind_out_window = true;
+static bool bind_out_window = false;
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -24,65 +25,6 @@ void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 
-static void HelpMarker(const char* desc)
-{
-    ImGui::TextDisabled("(?)");
-    if (ImGui::IsItemHovered())
-    {
-        ImGui::BeginTooltip();
-        ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
-        ImGui::TextUnformatted(desc);
-        ImGui::PopTextWrapPos();
-        ImGui::EndTooltip();
-    }
-}
-
-struct Funcs
-{
-    static int MyCallback(ImGuiInputTextCallbackData* data)
-    {
-        if (data->EventFlag == ImGuiInputTextFlags_CallbackCompletion)
-        {
-            data->InsertChars(data->CursorPos, "..");
-        }
-        else if (data->EventFlag == ImGuiInputTextFlags_CallbackHistory)
-        {
-            if (data->EventKey == ImGuiKey_UpArrow)
-            {
-                data->DeleteChars(0, data->BufTextLen);
-                data->InsertChars(0, "Pressed Up!");
-                data->SelectAll();
-            }
-            else if (data->EventKey == ImGuiKey_DownArrow)
-            {
-                data->DeleteChars(0, data->BufTextLen);
-                data->InsertChars(0, "Pressed Down!");
-                data->SelectAll();
-            }
-        }
-        else if (data->EventFlag == ImGuiInputTextFlags_CallbackEdit)
-        {
-            // Toggle casing of first character
-           // Buf
-            printf("Buf :%s\n", data->Buf);
-            
-        }
-        return 0;
-    }
-};
-
-void getGameRect(HWND hwndGame,RECT& RectGame)
-{
-    RECT stRect, stKhRect;
-    GetWindowRect(hwndGame, &stRect);
-    GetClientRect(hwndGame, &stKhRect);
-    RectGame.left = stRect.left;
-    RectGame.right = stRect.right;
-    RectGame.top = stRect.bottom - stKhRect.bottom;
-    RectGame.bottom = stRect.bottom;
-}
-
-
 // Main code
 int main(int, char**)
 {
@@ -92,17 +34,16 @@ int main(int, char**)
     ::RegisterClassEx(&wc);
 
 
-    HWND hwnd;
     if (bind_out_window)
     {
         long ret_process = tools::findProcessbyName(_T("notepad"));
         printf("ret_process:%d", ret_process);
 
-        HWND gameHwnd = FindWindow(NULL, TEXT("无标题 - 记事本"));
+        global::hwndGame = FindWindow(NULL, TEXT("无标题 - 记事本"));
         RECT RectGame = { 0 };
-        getGameRect(gameHwnd,RectGame);
+        tools::getGameRect(global::hwndGame,RectGame);
 
-        hwnd = CreateWindowExW(
+        global::hwndCurrent = :: CreateWindowExW(
             /*WS_EX_TOPMOST |*/ WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/,
             wc.lpszClassName,      // window class name
             _T("ImGui Example"),   // window caption
@@ -114,49 +55,39 @@ int main(int, char**)
             NULL);
     }
     else {
-        hwnd = CreateWindowExW(
-            /*WS_EX_TOPMOST |*/ WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/,
-            wc.lpszClassName,      // window class name
-            _T("ImGui Example"),   // window caption
-            /*WS_POPUP*/WS_OVERLAPPEDWINDOW, // window style
-            CW_USEDEFAULT,// initial x position
-            CW_USEDEFAULT,// initial y position
-            1200, // initial x size
-            800, // initial y size
-            NULL, // parent window handle
-            NULL, // window menu handle
-            GetModuleHandle(NULL), // program instance handle
-            NULL);
+        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED,wc.lpszClassName, _T("Dear ImGui DirectX11 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
         
     }
 
     //关键色过滤
-    SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 255, LWA_ALPHA);
+    SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0), 255, LWA_ALPHA);
     //dwm透明特效
     DWM_BLURBEHIND bb = { 0 };
     HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
     bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
     bb.hRgnBlur = hRgn;
     bb.fEnable = TRUE;
-    DwmEnableBlurBehindWindow(hwnd, &bb);
+    DwmEnableBlurBehindWindow(global::hwndCurrent, &bb);
     
 
 
     // Initialize Direct3D
-    if (!CreateDeviceD3D(hwnd))
+    if (!CreateDeviceD3D(global::hwndCurrent))
     {
         CleanupDeviceD3D();
         ::UnregisterClass(wc.lpszClassName, wc.hInstance);
         return 1;
     }
 
-    ::ShowWindow(hwnd, SW_SHOW);
+    //::ShowWindow(hwnd, SW_SHOW);
     //MARGINS Margin = { -1, -1, -1, -1 };
     //DwmExtendFrameIntoClientArea(hwnd, &Margin);
 
     // Show the window
-   // ::ShowWindow(hwnd, SW_SHOWDEFAULT);
-    ::UpdateWindow(hwnd);
+    ::ShowWindow(global::hwndCurrent, SW_SHOWDEFAULT);
+    ::UpdateWindow(global::hwndCurrent);
+    // ::SetWindowPos(global::hwndCurrent, HWND_TOPMOST, RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, SWP_SHOWWINDOW);
+
 
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
@@ -186,14 +117,16 @@ int main(int, char**)
     ImGui::StyleColorsLight();
 
     // Setup Platform/Renderer backends
-    ImGui_ImplWin32_Init(hwnd);
+    ImGui_ImplWin32_Init(global::hwndCurrent);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
 
 
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+    //ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 0.00f); // window will be 透明
+    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
 
     // Main loop
     bool done = false;
@@ -226,13 +159,20 @@ int main(int, char**)
         static bool ck_v = false;
 
         static char* input_1 = NULL;
+        static struct ExampleAppLog log;
+
 
         if (p_open)
         {
             // create the windows
             ImGui::Begin(u8"My Windows 窗口",&p_open); // chinese will mojibake if not set font
 
-            ImGui::Button("btn_1");
+            if (ImGui::Button("btn_1"))
+            {
+                log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
+                    ImGui::GetFrameCount(), "info", ImGui::GetTime(), "word");
+            }
+
             ImGui::SameLine();// next node will same line
             ImGui::Button("btn_2");
             if (ImGui::Button("btn_3"))
@@ -253,7 +193,28 @@ int main(int, char**)
             {
                 style->FrameRounding = 12.0f;
                 style->GrabRounding = 12.0f;
-                imgui_common::ShowExampleAppLog(&ck_v);
+
+
+                ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
+                ImGui::Begin("Example: Log", &ck_v);
+                if (ImGui::SmallButton("[Debug] Add 5 entries"))
+                {
+                    static int counter = 0;
+                    const char* categories[3] = { "info", "warn", "error" };
+                    const char* words[] = { "Bumfuzzled", "Cattywampus", "Snickersnee", "Abibliophobia", "Absquatulate", "Nincompoop", "Pauciloquent" };
+                    for (int n = 0; n < 5; n++)
+                    {
+                        const char* category = categories[counter % IM_ARRAYSIZE(categories)];
+                        const char* word = words[counter % IM_ARRAYSIZE(words)];
+                        log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
+                            ImGui::GetFrameCount(), category, ImGui::GetTime(), word);
+                        counter++;
+                    }
+                }
+                ImGui::End();
+                log.Draw("Example: Log", &ck_v);
+
+                
 
             }
             else {
@@ -267,7 +228,7 @@ int main(int, char**)
             ImGui::Text("this is text");
             ImGui::BulletText("this is BulletText");
             ImGui::SameLine(); 
-            HelpMarker("this is help makrer");
+            common_imgui::HelpMarker("this is help makrer");
 
             static float f = 0; // if not statis , val will be reset
             ImGui::SliderFloat("this is sliderfloat" ,&f, 0, 1, "Process:%.3f%%");
@@ -288,6 +249,7 @@ int main(int, char**)
             // draw rect
             drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), ImColor(255, 255, 255, 255));// closed when open is false
 
+            //static ExampleAppLog my_log;
 
             ImGui::End();
             ImGui::EndFrame();
@@ -325,11 +287,11 @@ int main(int, char**)
     ImGui::DestroyContext();
 
     CleanupDeviceD3D();
-    ::DestroyWindow(hwnd);
+    ::DestroyWindow(global::hwndCurrent);
     ::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
-    ::CloseHandle(hwnd);
-    //::CloseHandle(gameHwnd);
+    ::CloseHandle(global::hwndCurrent);
+    ::CloseHandle(global::hwndGame);
     return 0;
 }
 

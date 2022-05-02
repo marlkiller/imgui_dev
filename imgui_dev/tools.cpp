@@ -6,6 +6,7 @@ namespace tools
 {
     unsigned long findProcessbyName(const wchar_t* name);
     void* findModuleByName(const wchar_t* moduleName, unsigned long pid);
+    void getGameRect(HWND hwndGame, RECT& RectGame);
 
 }
 
@@ -56,3 +57,15 @@ void* tools::findModuleByName(const wchar_t* moduleName, unsigned long pid)
     return ModuleBase;
 }
 
+
+
+void tools::getGameRect(HWND hwndGame, RECT& RectGame)
+{
+    RECT stRect, stKhRect;
+    GetWindowRect(hwndGame, &stRect);
+    GetClientRect(hwndGame, &stKhRect);
+    RectGame.left = stRect.left;
+    RectGame.right = stRect.right;
+    RectGame.top = stRect.bottom - stKhRect.bottom;
+    RectGame.bottom = stRect.bottom;
+}
