@@ -9,7 +9,7 @@
 
 
 // hide_out_window
-static bool bind_out_window = false;
+static bool bind_out_window = true;
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -124,8 +124,8 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    //ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 0.00f); // window will be 透明
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 0.00f); // window will be 透明
+    //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
     // Main loop
