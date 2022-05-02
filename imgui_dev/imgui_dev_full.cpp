@@ -1,8 +1,10 @@
 ﻿
 
 #include <iostream>
-#include "Global.h"
+#include "common_imgui.h"
 #include <tchar.h>
+#include <dwmapi.h>
+#include "tools.h"
 
 
 // Data

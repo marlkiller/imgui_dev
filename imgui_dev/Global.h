@@ -1,16 +1,13 @@
 #pragma once
+#include <wtypes.h>
+#include "common_imgui.h"
 
-
-
-#include "imgui\imconfig.h"
-#include "imgui\imgui.h"
-#include "imgui\imgui_impl_dx11.h"
-#include "imgui\imgui_impl_win32.h"
-#include "imgui\imgui_internal.h"
-#include "imgui\imstb_rectpack.h"
-#include "imgui\imstb_textedit.h"
-#include "imgui\imstb_truetype.h"
-
-
-#include <d3d11.h>
-#pragma comment(lib,"d3d11.lib")
+namespace global
+{
+	extern 	HWND hwndGame;
+	extern 	HWND hwndCurrent;
+	extern unsigned long uGamePid;
+	extern HANDLE hGameProcess;
+	extern 	char* pServer_css_Module;
+	extern	char* pEngine_Module;
+}

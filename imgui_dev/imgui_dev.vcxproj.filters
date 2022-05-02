@@ -39,12 +39,21 @@
     <ClCompile Include="imgui\imgui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
+    <ClCompile Include="tools.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
     <ClCompile Include="imgui_dev.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="common_imgui.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="global.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Global.h">
+    <ClInclude Include="common_imgui.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="imgui\imgui_impl_dx11.h">
@@ -70,6 +79,12 @@
     </ClInclude>
     <ClInclude Include="imgui\imgui.h">
       <Filter>imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="tools.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,11 +1,14 @@
 ﻿
 
 #include <iostream>
-#include "Global.h"
+#include "common_imgui.h"
 #include <tchar.h>
+#include <dwmapi.h>
+#include "tools.h"
 
 
 // hide_out_window
+static bool bind_out_window = true;
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -68,6 +71,17 @@ struct Funcs
     }
 };
 
+void getGameRect(HWND hwndGame,RECT& RectGame)
+{
+    RECT stRect, stKhRect;
+    GetWindowRect(hwndGame, &stRect);
+    GetClientRect(hwndGame, &stKhRect);
+    RectGame.left = stRect.left;
+    RectGame.right = stRect.right;
+    RectGame.top = stRect.bottom - stKhRect.bottom;
+    RectGame.bottom = stRect.bottom;
+}
+
 
 // Main code
 int main(int, char**)
@@ -76,7 +90,57 @@ int main(int, char**)
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
     ::RegisterClassEx(&wc);
-    HWND hwnd = ::CreateWindow(wc.lpszClassName, _T("Dear ImGui DirectX11 Example"), WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, NULL, NULL, wc.hInstance, NULL);
+
+
+    HWND hwnd;
+    if (bind_out_window)
+    {
+        long ret_process = tools::findProcessbyName(_T("notepad"));
+        printf("ret_process:%d", ret_process);
+
+        HWND gameHwnd = FindWindow(NULL, TEXT("无标题 - 记事本"));
+        RECT RectGame = { 0 };
+        getGameRect(gameHwnd,RectGame);
+
+        hwnd = CreateWindowExW(
+            /*WS_EX_TOPMOST |*/ WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/,
+            wc.lpszClassName,      // window class name
+            _T("ImGui Example"),   // window caption
+            WS_POPUP/*WS_OVERLAPPEDWINDOW*/, // window style, WS_POPUP can't show title
+            RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, // initial y size
+            NULL, // parent window handle
+            NULL, // window menu handle
+            GetModuleHandle(NULL), // program instance handle
+            NULL);
+    }
+    else {
+        hwnd = CreateWindowExW(
+            /*WS_EX_TOPMOST |*/ WS_EX_LAYERED /*| WS_EX_TRANSPARENT*/,
+            wc.lpszClassName,      // window class name
+            _T("ImGui Example"),   // window caption
+            /*WS_POPUP*/WS_OVERLAPPEDWINDOW, // window style
+            CW_USEDEFAULT,// initial x position
+            CW_USEDEFAULT,// initial y position
+            1200, // initial x size
+            800, // initial y size
+            NULL, // parent window handle
+            NULL, // window menu handle
+            GetModuleHandle(NULL), // program instance handle
+            NULL);
+        
+    }
+
+    //关键色过滤
+    SetLayeredWindowAttributes(hwnd, RGB(0, 0, 0), 255, LWA_ALPHA);
+    //dwm透明特效
+    DWM_BLURBEHIND bb = { 0 };
+    HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
+    bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
+    bb.hRgnBlur = hRgn;
+    bb.fEnable = TRUE;
+    DwmEnableBlurBehindWindow(hwnd, &bb);
+    
+
 
     // Initialize Direct3D
     if (!CreateDeviceD3D(hwnd))
@@ -86,8 +150,12 @@ int main(int, char**)
         return 1;
     }
 
+    ::ShowWindow(hwnd, SW_SHOW);
+    //MARGINS Margin = { -1, -1, -1, -1 };
+    //DwmExtendFrameIntoClientArea(hwnd, &Margin);
+
     // Show the window
-    ::ShowWindow(hwnd, SW_SHOWDEFAULT);
+   // ::ShowWindow(hwnd, SW_SHOWDEFAULT);
     ::UpdateWindow(hwnd);
 
     // Setup Dear ImGui context
@@ -125,7 +193,7 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
 
     // Main loop
     bool done = false;
@@ -185,12 +253,16 @@ int main(int, char**)
             {
                 style->FrameRounding = 12.0f;
                 style->GrabRounding = 12.0f;
+                imgui_common::ShowExampleAppLog(&ck_v);
+
             }
             else {
 
                 style->FrameRounding = 0.0f;
                 style->GrabRounding = 0.0f;
             }
+
+
 
             ImGui::Text("this is text");
             ImGui::BulletText("this is BulletText");
@@ -209,12 +281,16 @@ int main(int, char**)
             if (ImGui::CollapsingHeader(u8"展开内容"))
             {
                 ImGui::Text("this is text2");
-
                 ImGui::InputText("this is label", input_val, IM_ARRAYSIZE(input_val), ImGuiInputTextFlags_CallbackEdit, Funcs::MyCallback);
             }
 
+            ImDrawList* drawList = ImGui::GetForegroundDrawList(); 
+            // draw rect
+            drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), ImColor(255, 255, 255, 255));// closed when open is false
+
 
             ImGui::End();
+            ImGui::EndFrame();
 
 
             // ImGui::Button("btn4"); // btn will create in new window
@@ -230,11 +306,7 @@ int main(int, char**)
         // draw text
         drawList->AddText(ImVec2(100, 100), ImColor(255, 255, 255, 255), "this is text_begin");
 
-        // draw rect
-        drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), ImColor(255, 255, 255, 255));
-
        
-
 
         // Rendering
         ImGui::Render();
@@ -256,6 +328,8 @@ int main(int, char**)
     ::DestroyWindow(hwnd);
     ::UnregisterClass(wc.lpszClassName, wc.hInstance);
 
+    ::CloseHandle(hwnd);
+    //::CloseHandle(gameHwnd);
     return 0;
 }
 
