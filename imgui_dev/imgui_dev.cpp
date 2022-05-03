@@ -9,7 +9,7 @@
 
 
 // hide_out_window
-static bool bind_out_window = true;
+static bool bind_out_window = false;
 static ImColor color_red = ImColor(255, 0, 0, 255);
 static ImColor color_green = ImColor(0, 255, 0, 255);
 static ImColor color_blue = ImColor(0, 0, 255, 255);
@@ -74,11 +74,11 @@ int main(int, char**)
         LWA_COLORKEY：窗体中的所有颜色为crKey的地方将变为透明，bAlpha参数无效。其常量值为1。
         LWA_ALPHA | LWA_COLORKEY：crKey的地方将变为全透明，而其它地方根据bAlpha参数确定透明度*/
 
-    SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255), 255, LWA_COLORKEY);
+    SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0), NULL, LWA_COLORKEY);
 
 
     //dwm透明特效, 搭配 LWA_ALPHA使用,进行透明后鼠标无法穿透透明部分
-    /*SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255), 255, LWA_ALPHA);
+    /*SetLayeredWindowAttributes(global::hwndCurrent,NULL, 255, LWA_ALPHA);
     DWM_BLURBEHIND bb = { 0 };
     HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
     bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
@@ -131,7 +131,7 @@ int main(int, char**)
     //ImGui::StyleColorsLight();
 
     // style->Colors[ImGuiCol_ButtonHovered] = ImColor(255, 255, 255, 255);
-    style->Colors[ImGuiCol_Text] = color_black;
+    style->Colors[ImGuiCol_Text] = color_green;
 
     // color
     style->Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
@@ -146,7 +146,7 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(255.00f, 255.00f, 255.00f, 255.00f); // window will be 透明
+    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f); // window will be 透明
     //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
