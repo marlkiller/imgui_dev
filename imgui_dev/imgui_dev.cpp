@@ -74,11 +74,11 @@ int main(int, char**)
         LWA_COLORKEY：窗体中的所有颜色为crKey的地方将变为透明，bAlpha参数无效。其常量值为1。
         LWA_ALPHA | LWA_COLORKEY：crKey的地方将变为全透明，而其它地方根据bAlpha参数确定透明度*/
 
-    SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0), NULL, LWA_COLORKEY);
+    SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255), NULL, LWA_COLORKEY); // //设置颜色过滤,使用改关键色刷新屏幕后颜色被过滤实现透明
 
 
     //dwm透明特效, 搭配 LWA_ALPHA使用,进行透明后鼠标无法穿透透明部分
-    /*SetLayeredWindowAttributes(global::hwndCurrent,NULL, 255, LWA_ALPHA);
+    /*SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0), 255, LWA_ALPHA);
     DWM_BLURBEHIND bb = { 0 };
     HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
     bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
@@ -96,7 +96,7 @@ int main(int, char**)
         return 1;
     }
 
-    //::ShowWindow(hwnd, SW_SHOW);
+    //::ShowWindow(global::hwndCurrent, SW_SHOW);
     /*MARGINS Margin = { -1, -1, -1, -1 };
     DwmExtendFrameIntoClientArea(global::hwndCurrent, &Margin);*/
 
@@ -146,7 +146,7 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.0f, 0.0f, 0.0f, 1.0f); // window will be 透明
+    ImVec4 clear_color = ImVec4(255.0f, 255.0f, 255.0f, 1.0f); //设置dx11屏幕刷新颜色 注意这里的颜色要和设置透明关键色设置一样
     //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
@@ -188,7 +188,7 @@ int main(int, char**)
         //设置窗口的大小
         //ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
         //设置窗口为透明
-        ImGui::SetNextWindowBgAlpha(0);
+        //ImGui::SetNextWindowBgAlpha(0); // 窗口透明的时候 字体渲染有问题
         //设置窗口的padding为0是图片控件充满窗口
         //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         //设置窗口为无边框
