@@ -1,0 +1,2 @@
+font_diy.h filter=lfs diff=lfs merge=lfs -text
+font_diy.* filter=lfs diff=lfs merge=lfs -text

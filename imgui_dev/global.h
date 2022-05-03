@@ -1,6 +1,8 @@
 #pragma once
 #include <wtypes.h>
 #include "common_imgui.h"
+#include "font_diy.h"
+
 
 namespace global
 {

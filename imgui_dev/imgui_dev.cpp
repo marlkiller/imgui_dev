@@ -46,10 +46,10 @@ int main(int, char**)
         printf("ret_process:%d", ret_process);
 
         global::hwndGame = FindWindow(NULL, TEXT("无标题 - 记事本"));
-        tools::getGameRect(global::hwndGame,RectGame);
+        tools::getGameRect(global::hwndGame, RectGame);
 
-        global::hwndCurrent = :: CreateWindowExW(
-            /*WS_EX_TOPMOST |*/ /*WS_EX_TRANSPARENT|*/ WS_EX_LAYERED ,
+        global::hwndCurrent = ::CreateWindowExW(
+            /*WS_EX_TOPMOST |*/ /*WS_EX_TRANSPARENT|*/ WS_EX_LAYERED,
             wc.lpszClassName,      // window class name
             _T("ImGui Example"),   // window caption
             WS_POPUP/*WS_OVERLAPPEDWINDOW*/, // window style, WS_POPUP can't show title
@@ -62,9 +62,9 @@ int main(int, char**)
     else {
         int screenwidth = GetSystemMetrics(SM_CXFULLSCREEN);
         int screenheight = GetSystemMetrics(SM_CYFULLSCREEN);
-        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED,wc.lpszClassName, _T("ImGui Example"), WS_POPUP, 0, 0, screenwidth, screenheight, NULL, NULL, GetModuleHandle(NULL), NULL);
+        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED, wc.lpszClassName, _T("ImGui Example"), WS_POPUP, 0, 0, screenwidth, screenheight, NULL, NULL, GetModuleHandle(NULL), NULL);
         tools::getGameRect(global::hwndCurrent, RectGame);
-        
+
     }
 
     //关键色过滤
@@ -73,8 +73,8 @@ int main(int, char**)
         LWA_ALPHA时：crKey参数无效，bAlpha参数有效；
         LWA_COLORKEY：窗体中的所有颜色为crKey的地方将变为透明，bAlpha参数无效。其常量值为1。
         LWA_ALPHA | LWA_COLORKEY：crKey的地方将变为全透明，而其它地方根据bAlpha参数确定透明度*/
-       
-    SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255),255, LWA_COLORKEY);
+
+    SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255), 255, LWA_COLORKEY);
 
 
     //dwm透明特效, 搭配 LWA_ALPHA使用,进行透明后鼠标无法穿透透明部分
@@ -85,7 +85,7 @@ int main(int, char**)
     bb.hRgnBlur = hRgn;
     bb.fEnable = TRUE;
     DwmEnableBlurBehindWindow(global::hwndCurrent, &bb);*/
-    
+
 
 
     // Initialize Direct3D
@@ -111,15 +111,15 @@ int main(int, char**)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    
-   
 
-    // cpu will heigh , plz use memery font!AddFontFromMemaryTTF
-    ImFont* font1 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 18.0f,NULL,io.Fonts->GetGlyphRangesChineseFull());
-    //ImFont* font1 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChineseFull()); // this font will mojibake , i don't know why
-    
+
+
+    ImFont* font1 = io.Fonts->AddFontFromMemoryTTF((void*)font_diy_data, font_diy_size, 16.0f, NULL, io.Fonts->GetGlyphRangesChineseFull());
+    // cpu will heigh, will error if .ttc not exist , plz use memery font!AddFontFromMemaryTTF
+    //ImFont* font1 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 16.0f,NULL,io.Fonts->GetGlyphRangesChineseFull());
+
     ImGuiStyle* style = &ImGui::GetStyle();
-    
+
     // style 
     //style->FrameRounding = 12.0f;
     //style->GrabRounding = 12.0f;
@@ -193,7 +193,7 @@ int main(int, char**)
         //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         //设置窗口为无边框
         //ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-        
+
         // remove the three example win
         // custom code
 
@@ -208,7 +208,7 @@ int main(int, char**)
         if (p_open)
         {
             // create the windows
-            ImGui::Begin(u8"My Windows 窗口",&p_open); // chinese will mojibake if not set font
+            ImGui::Begin(u8"My Windows 窗口", &p_open); // chinese will mojibake if not set font
 
             if (ImGui::Button("btn_1"))
             {
@@ -220,16 +220,16 @@ int main(int, char**)
             if (ImGui::Button("btn_3"))
             {
                 log.AddLog("[%s] %s", "debug", "btn3 click event\n");
-                p_open = false; 
+                p_open = false;
             }
 
-            
+
             ImGui::RadioButton("rb_1", &active, 0); // warn: node name is identity 
             ImGui::RadioButton("rb_2", &active, 1);
             ImGui::RadioButton("rb_3", &active, 2);
             //printf("radio active : %d\n", active);
 
-            
+
             if (ImGui::Checkbox("check_box_1", &ck_v))
             {
                 // checckbox_event
@@ -260,7 +260,7 @@ int main(int, char**)
                 ImGui::End();
                 log.Draw("Example: Log", &ck_v);
 
-                
+
 
             }
             else {
@@ -273,13 +273,13 @@ int main(int, char**)
 
             ImGui::Text("this is text");
             ImGui::BulletText("this is BulletText");
-            ImGui::SameLine(); 
+            ImGui::SameLine();
             common_imgui::HelpMarker("this is help makrer");
 
             static float f = 0; // if not statis , val will be reset
-            ImGui::SliderFloat("this is sliderfloat" ,&f, 0, 1, "Process:%.3f%%");
+            ImGui::SliderFloat("this is sliderfloat", &f, 0, 1, "Process:%.3f%%");
 
-            static int i = 0; 
+            static int i = 0;
             ImGui::SliderInt("this is sliderint", &i, 0, 100, "Process:%d%%");
 
             //ImGui::InputText("thiis is inputText", input_1,);
@@ -291,7 +291,7 @@ int main(int, char**)
                 ImGui::InputText("this is label", input_val, IM_ARRAYSIZE(input_val), ImGuiInputTextFlags_CallbackEdit, Funcs::MyCallback);
             }
 
-            ImDrawList* drawList = ImGui::GetForegroundDrawList(); 
+            ImDrawList* drawList = ImGui::GetForegroundDrawList();
             // draw rect
             drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), color_red);// closed when open is false
 
@@ -305,11 +305,11 @@ int main(int, char**)
                 tools::getGameRect(global::hwndGame, RectGame); // auto move windows
                 MoveWindow(global::hwndCurrent, RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, true);
             }
-           
+
         }
         ImGui::EndFrame();
 
-        ImDrawList* drawList =ImGui::GetForegroundDrawList();
+        ImDrawList* drawList = ImGui::GetForegroundDrawList();
         // draw 4 line
         drawList->AddLine(ImVec2(100, 100), ImVec2(200, 100), color_red, 1.0f);
         drawList->AddLine(ImVec2(200, 100), ImVec2(200, 200), color_red, 1.0f);
@@ -319,7 +319,7 @@ int main(int, char**)
         // draw text
         drawList->AddText(ImVec2(100, 100), color_red, "this is text_begin");
 
-       
+
 
         // Rendering
         ImGui::Render();
