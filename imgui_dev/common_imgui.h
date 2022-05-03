@@ -18,6 +18,7 @@
 namespace common_imgui
 {
     void HelpMarker(const char* desc); // TODO static will be error
+
 }
 struct ExampleAppLog
 {

@@ -10,6 +10,12 @@
 
 // hide_out_window
 static bool bind_out_window = true;
+static ImColor color_red = ImColor(255, 0, 0, 255);
+static ImColor color_green = ImColor(0, 255, 0, 255);
+static ImColor color_blue = ImColor(0, 0, 255, 255);
+static ImColor color_black = ImColor(0, 0, 0, 255);
+static ImColor color_white = ImColor(255, 255, 255, 255);
+
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -24,7 +30,6 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-
 // Main code
 int main(int, char**)
 {
@@ -33,6 +38,7 @@ int main(int, char**)
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
     ::RegisterClassEx(&wc);
 
+    RECT RectGame = { 0 };
 
     if (bind_out_window)
     {
@@ -40,7 +46,6 @@ int main(int, char**)
         printf("ret_process:%d", ret_process);
 
         global::hwndGame = FindWindow(NULL, TEXT("无标题 - 记事本"));
-        RECT RectGame = { 0 };
         tools::getGameRect(global::hwndGame,RectGame);
 
         global::hwndCurrent = :: CreateWindowExW(
@@ -55,7 +60,10 @@ int main(int, char**)
             NULL);
     }
     else {
-        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED,wc.lpszClassName, _T("ImGui Example"), WS_POPUP, 100, 100, 500, 500, NULL, NULL, GetModuleHandle(NULL), NULL);
+        int screenwidth = GetSystemMetrics(SM_CXFULLSCREEN);
+        int screenheight = GetSystemMetrics(SM_CYFULLSCREEN);
+        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED,wc.lpszClassName, _T("ImGui Example"), WS_POPUP, 0, 0, screenwidth, screenheight, NULL, NULL, GetModuleHandle(NULL), NULL);
+        tools::getGameRect(global::hwndCurrent, RectGame);
         
     }
 
@@ -66,16 +74,17 @@ int main(int, char**)
         LWA_COLORKEY：窗体中的所有颜色为crKey的地方将变为透明，bAlpha参数无效。其常量值为1。
         LWA_ALPHA | LWA_COLORKEY：crKey的地方将变为全透明，而其它地方根据bAlpha参数确定透明度*/
        
-    SetLayeredWindowAttributes(global::hwndCurrent, RGB(0, 0, 0),255, LWA_COLORKEY);
+    SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255),255, LWA_COLORKEY);
 
 
     //dwm透明特效, 搭配 LWA_ALPHA使用,进行透明后鼠标无法穿透透明部分
-    /*DWM_BLURBEHIND bb = { 0 };
+    /*SetLayeredWindowAttributes(global::hwndCurrent, RGB(255, 255, 255), 255, LWA_ALPHA);
+    DWM_BLURBEHIND bb = { 0 };
     HRGN hRgn = CreateRectRgn(0, 0, -1, -1);
     bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
     bb.hRgnBlur = hRgn;
     bb.fEnable = TRUE;
-    DwmEnableBlurBehindWindow(global::hwndCurrent, &bb)*/; // 使用DwmEnableBlurBehindWindow进行透明后鼠标无法穿透透明部分
+    DwmEnableBlurBehindWindow(global::hwndCurrent, &bb);*/
     
 
 
@@ -88,13 +97,13 @@ int main(int, char**)
     }
 
     //::ShowWindow(hwnd, SW_SHOW);
-    //MARGINS Margin = { -1, -1, -1, -1 };
-    //DwmExtendFrameIntoClientArea(hwnd, &Margin);
+    /*MARGINS Margin = { -1, -1, -1, -1 };
+    DwmExtendFrameIntoClientArea(global::hwndCurrent, &Margin);*/
 
     // Show the window
     ::ShowWindow(global::hwndCurrent, SW_SHOWDEFAULT);
     ::UpdateWindow(global::hwndCurrent);
-    // ::SetWindowPos(global::hwndCurrent, HWND_TOPMOST, RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, SWP_SHOWWINDOW);
+    ::SetWindowPos(global::hwndCurrent, HWND_TOPMOST, RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, SWP_SHOWWINDOW); // make win top
 
 
     // Setup Dear ImGui context
@@ -102,18 +111,15 @@ int main(int, char**)
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
+    
+   
+
     // cpu will heigh , plz use memery font!AddFontFromMemaryTTF
     ImFont* font1 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\msyh.ttc", 18.0f,NULL,io.Fonts->GetGlyphRangesChineseFull());
     //ImFont* font1 = io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\arial.ttf", 18.0f, NULL, io.Fonts->GetGlyphRangesChineseFull()); // this font will mojibake , i don't know why
     
     ImGuiStyle* style = &ImGui::GetStyle();
-    // style->Colors[ImGuiCol_ButtonHovered] = ImColor(255, 255, 255, 255);
-
-    // color
-    style->Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
-    style->Colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
-    style->Colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
-
+    
     // style 
     //style->FrameRounding = 12.0f;
     //style->GrabRounding = 12.0f;
@@ -124,6 +130,14 @@ int main(int, char**)
     //ImGui::StyleColorsClassic();
     //ImGui::StyleColorsLight();
 
+    // style->Colors[ImGuiCol_ButtonHovered] = ImColor(255, 255, 255, 255);
+    style->Colors[ImGuiCol_Text] = color_black;
+
+    // color
+    style->Colors[ImGuiCol_Button] = ImVec4(0.26f, 0.59f, 0.98f, 0.40f);
+    style->Colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.59f, 0.98f, 1.00f);
+    style->Colors[ImGuiCol_ButtonActive] = ImVec4(0.06f, 0.53f, 0.98f, 1.00f);
+
     // Setup Platform/Renderer backends
     ImGui_ImplWin32_Init(global::hwndCurrent);
     ImGui_ImplDX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
@@ -132,7 +146,7 @@ int main(int, char**)
     // Our state
     bool show_demo_window = true;
     bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.00f, 0.00f, 0.00f, 0.00f); // window will be 透明
+    ImVec4 clear_color = ImVec4(255.00f, 255.00f, 255.00f, 255.00f); // window will be 透明
     //ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
 
@@ -153,11 +167,32 @@ int main(int, char**)
         if (done)
             break;
 
+        // height and width
+        static int sub_win_height = 400;
+        static int sub_win_width = 200;
+
+
         // Start the Dear ImGui frame
         ImGui_ImplDX11_NewFrame();
         ImGui_ImplWin32_NewFrame();
         ImGui::NewFrame();
 
+        // 下个窗口位置居中
+        ImGui::SetNextWindowSize(ImVec2(200, 400));
+        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - (sub_win_width / 2), io.DisplaySize.y / 2 - (sub_win_height / 2)), ImGuiCond_FirstUseEver); // 去掉 ImGuiCond_FirstUseEver 后,窗口不能移动
+        //ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - (sub_win_width / 2), io.DisplaySize.y / 2 - (sub_win_height / 2))); 
+
+
+        //设置窗口位置
+        //ImGui::SetNextWindowPos(ImVec2(0, 0), 0, ImVec2(0, 0));
+        //设置窗口的大小
+        //ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
+        //设置窗口为透明
+        ImGui::SetNextWindowBgAlpha(0);
+        //设置窗口的padding为0是图片控件充满窗口
+        //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+        //设置窗口为无边框
+        //ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
         
         // remove the three example win
         // custom code
@@ -177,15 +212,14 @@ int main(int, char**)
 
             if (ImGui::Button("btn_1"))
             {
-                log.AddLog("[%05d] [%s] Hello, current time is %.1f, here's a word: '%s'\n",
-                    ImGui::GetFrameCount(), "info", ImGui::GetTime(), "word");
+                log.AddLog("[%s] %s", "debug", "fuckyou\n");
             }
 
             ImGui::SameLine();// next node will same line
             ImGui::Button("btn_2");
             if (ImGui::Button("btn_3"))
             {
-                printf("btn3 click event\n");
+                log.AddLog("[%s] %s", "debug", "btn3 click event\n");
                 p_open = false; 
             }
 
@@ -193,11 +227,15 @@ int main(int, char**)
             ImGui::RadioButton("rb_1", &active, 0); // warn: node name is identity 
             ImGui::RadioButton("rb_2", &active, 1);
             ImGui::RadioButton("rb_3", &active, 2);
-            printf("radio active : %d\n", active);
+            //printf("radio active : %d\n", active);
 
-            ImGui::Checkbox("check_box_1", &ck_v);
-            printf("check_box_1 checked : %d\n", ck_v);
-            if (ck_v)
+            
+            if (ImGui::Checkbox("check_box_1", &ck_v))
+            {
+                // checckbox_event
+                log.AddLog("[%s] %s %d , %s %d\n", "debug", "check_box_1 val", ck_v, "radio_val", active);
+            }
+            if (ck_v) // checckbox val is true
             {
                 style->FrameRounding = 12.0f;
                 style->GrabRounding = 12.0f;
@@ -255,14 +293,11 @@ int main(int, char**)
 
             ImDrawList* drawList = ImGui::GetForegroundDrawList(); 
             // draw rect
-            drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), ImColor(255, 255, 255, 255));// closed when open is false
+            drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), color_red);// closed when open is false
 
             //static ExampleAppLog my_log;
 
             ImGui::End();
-            ImGui::EndFrame();
-
-
             // ImGui::Button("btn4"); // btn will create in new window
 
             if (global::hwndGame)
@@ -270,18 +305,19 @@ int main(int, char**)
                 tools::getGameRect(global::hwndGame, RectGame); // auto move windows
                 MoveWindow(global::hwndCurrent, RectGame.left, RectGame.top, RectGame.right - RectGame.left, RectGame.bottom - RectGame.top, true);
             }
-            
+           
         }
+        ImGui::EndFrame();
 
         ImDrawList* drawList =ImGui::GetForegroundDrawList();
         // draw 4 line
-        drawList->AddLine(ImVec2(100, 100), ImVec2(200, 100), ImColor(255, 255, 255, 255), 1.0f);
-        drawList->AddLine(ImVec2(200, 100), ImVec2(200, 200), ImColor(255, 255, 255, 255), 1.0f);
-        drawList->AddLine(ImVec2(100, 100), ImVec2(100, 200), ImColor(255, 255, 255, 255), 1.0f);
-        drawList->AddLine({ 100, 200 }, { 200, 200 }, ImColor(255, 255, 255, 255), 1.0f);
+        drawList->AddLine(ImVec2(100, 100), ImVec2(200, 100), color_red, 1.0f);
+        drawList->AddLine(ImVec2(200, 100), ImVec2(200, 200), color_red, 1.0f);
+        drawList->AddLine(ImVec2(100, 100), ImVec2(100, 200), color_red, 1.0f);
+        drawList->AddLine({ 100, 200 }, { 200, 200 }, color_red, 1.0f);
 
         // draw text
-        drawList->AddText(ImVec2(100, 100), ImColor(255, 255, 255, 255), "this is text_begin");
+        drawList->AddText(ImVec2(100, 100), color_red, "this is text_begin");
 
        
 
