@@ -19,3 +19,6 @@ eg:(mono 不支持中文)
 
 .\binary_to_compressed_c.exe -base85 JetBrainsMonoNL-Light.ttf font_diy > font_diy.h
 
+### git 大文件处理
+git lfs track "font_diy.h"
+track 之后 在进行 git add/commit/push
