@@ -9,7 +9,7 @@
 
 
 // hide_out_window
-static bool bind_out_window = false;
+static bool bind_out_window = true;
 static ImColor color_red = ImColor(255, 0, 0, 255);
 static ImColor color_green = ImColor(0, 255, 0, 255);
 static ImColor color_blue = ImColor(0, 0, 255, 255);
@@ -213,6 +213,7 @@ int main(int, char**)
         {
             // create the windows
             ImGui::Begin(u8"My Windows 窗口", &p_open); // chinese will mojibake if not set font
+            ImGui::Text("Application average \n%.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
             if (ImGui::Button("btn_1"))
             {
