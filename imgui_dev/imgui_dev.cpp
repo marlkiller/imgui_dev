@@ -9,13 +9,28 @@
 
 
 // hide_out_window
-static bool bind_out_window = true;
+static bool bind_out_window = false;
 static ImColor color_red = ImColor(255, 0, 0, 255);
 static ImColor color_green = ImColor(0, 255, 0, 255);
 static ImColor color_blue = ImColor(0, 0, 255, 255);
 static ImColor color_black = ImColor(0, 0, 0, 255);
 static ImColor color_white = ImColor(255, 255, 255, 255);
 
+enum MyItemColumnID
+{
+    MyItemColumnID_ID,
+    MyItemColumnID_Name,
+    MyItemColumnID_Action,
+    MyItemColumnID_Quantity,
+    MyItemColumnID_Description
+};
+
+struct MyItem
+{
+    int         ID;
+    const char* Name;
+    int         Quantity;
+};
 
 // Data
 static ID3D11Device* g_pd3dDevice = NULL;
@@ -30,9 +45,51 @@ void CreateRenderTarget();
 void CleanupRenderTarget();
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
+
+
+static bool refresh_draw_data = false;
+static ImVector<MyItem> items;
+static int table_data_len = 10;
+DWORD WINAPI MakeTableDataThread(LPVOID pM)
+{
+    int MIN = 1;
+    int MAX = table_data_len;
+    //items.resize(1);
+    while (true)
+    {
+        if (!refresh_draw_data)
+        {
+            Sleep(1000);
+            continue;
+        }
+        // TODO get with drawIndex
+        int id = (MIN + rand() % (MAX - MIN + 1));
+
+        bool exist = false;
+        ImVector<MyItem>::iterator it;
+        for (it = items.begin(); it != items.end(); it++)
+            if (it->ID == id)
+            {
+                it->Quantity = it->Quantity + 1;
+                exist = true;
+                continue;
+            }
+        if (!exist)
+        {
+            MyItem item;
+            item.ID = id;
+            item.Name = "name";
+            item.Quantity = id % 3;
+            items.push_back(item);
+        }
+    }
+    return 0;
+}
+ 
 // Main code
 int main(int, char**)
 {
+    CreateThread(NULL, 0, MakeTableDataThread, NULL, 0, NULL);
     // Create application window
     //ImGui_ImplWin32_EnableDpiAwareness();
     WNDCLASSEX wc = { sizeof(WNDCLASSEX), CS_CLASSDC, WndProc, 0L, 0L, GetModuleHandle(NULL), NULL, NULL, NULL, NULL, _T("ImGui Example"), NULL };
@@ -60,9 +117,9 @@ int main(int, char**)
             NULL);
     }
     else {
-        int screenwidth = GetSystemMetrics(SM_CXFULLSCREEN);
-        int screenheight = GetSystemMetrics(SM_CYFULLSCREEN);
-        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED , wc.lpszClassName, _T("ImGui Example"), WS_POPUP, 0, 0, screenwidth, screenheight, NULL, NULL, GetModuleHandle(NULL), NULL);
+        int screenwidth = GetSystemMetrics(SM_CXFULLSCREEN)/2;
+        int screenheight = GetSystemMetrics(SM_CYFULLSCREEN)/2;
+        global::hwndCurrent = ::CreateWindowExW(WS_EX_LAYERED , wc.lpszClassName, _T("ImGui Example"), WS_OVERLAPPEDWINDOW, 0, 0, screenwidth, screenheight, NULL, NULL, GetModuleHandle(NULL), NULL);
         tools::getGameRect(global::hwndCurrent, RectGame);
 
     }
@@ -172,8 +229,8 @@ int main(int, char**)
         
 
         // height and width
-        static int sub_win_height = 400;
-        static int sub_win_width = 200;
+        /*static int sub_win_height = 400;
+        static int sub_win_width = 200;*/
 
 
         // Start the Dear ImGui frame
@@ -182,17 +239,17 @@ int main(int, char**)
         ImGui::NewFrame();
 
         // 下个窗口位置居中
-        ImGui::SetNextWindowSize(ImVec2(200, 400));
-        ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - (sub_win_width / 2), io.DisplaySize.y / 2 - (sub_win_height / 2)), ImGuiCond_FirstUseEver); // 去掉 ImGuiCond_FirstUseEver 后,窗口不能移动
+        //ImGui::SetNextWindowSize(ImVec2(200, 400));
+        //ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - (sub_win_width / 2), io.DisplaySize.y / 2 - (sub_win_height / 2)), ImGuiCond_FirstUseEver); // 去掉 ImGuiCond_FirstUseEver 后,窗口不能移动
         //ImGui::SetNextWindowPos(ImVec2(io.DisplaySize.x / 2 - (sub_win_width / 2), io.DisplaySize.y / 2 - (sub_win_height / 2))); 
 
 
         //设置窗口位置
-        //ImGui::SetNextWindowPos(ImVec2(0, 0), 0, ImVec2(0, 0));
+        ImGui::SetNextWindowPos(ImVec2(0, 0), 0, ImVec2(0, 0));
         //设置窗口的大小
-        //ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
+        ImGui::SetNextWindowSize(ImVec2(io.DisplaySize.x, io.DisplaySize.y));
         //设置窗口为透明
-        ImGui::SetNextWindowBgAlpha(0); // 窗口透明的时候 字体渲染有问题
+        //ImGui::SetNextWindowBgAlpha(0); // 窗口透明的时候 字体渲染有问题
         //设置窗口的padding为0是图片控件充满窗口
         //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         //设置窗口为无边框
@@ -215,27 +272,27 @@ int main(int, char**)
             ImGui::Begin(u8"My Windows 窗口", &p_open); // chinese will mojibake if not set font
             ImGui::Text("Application average \n%.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
-            if (ImGui::Button("btn_1"))
+            if (ImGui::Button("Button_1"))
             {
                 log.AddLog("[%s] %s", "debug", "fuckyou\n");
             }
 
             ImGui::SameLine();// next node will same line
-            ImGui::Button("btn_2");
-            if (ImGui::Button("btn_3"))
+            ImGui::Button("Button_2");
+            if (ImGui::Button("OPEN/CLOSE"))
             {
                 log.AddLog("[%s] %s", "debug", "btn3 click event\n");
                 p_open = false;
             }
 
 
-            ImGui::RadioButton("rb_1", &active, 0); // warn: node name is identity 
-            ImGui::RadioButton("rb_2", &active, 1);
-            ImGui::RadioButton("rb_3", &active, 2);
+            ImGui::RadioButton("RadioBtn_1", &active, 0); // warn: node name is identity 
+            ImGui::RadioButton("RadioBtn_2", &active, 1);
+            ImGui::RadioButton("RadioBtn_3", &active, 2);
             //printf("radio active : %d\n", active);
-
-
-            if (ImGui::Checkbox("check_box_1", &ck_v))
+            ImGui::Checkbox("Refresh Draw Data", &refresh_draw_data);
+            
+            if (ImGui::Checkbox("To Log Window", &ck_v))
             {
                 // checckbox_event
                 log.AddLog("[%s] %s %d , %s %d\n", "debug", "check_box_1 val", ck_v, "radio_val", active);
@@ -264,9 +321,6 @@ int main(int, char**)
                 }
                 ImGui::End();
                 log.Draw("Example: Log", &ck_v);
-
-
-
             }
             else {
 
@@ -276,18 +330,90 @@ int main(int, char**)
 
 
 
-            ImGui::Text("this is text");
-            ImGui::BulletText("this is BulletText");
+            ImGui::Text("This is text");
+            ImGui::BulletText("This is BulletText");
             ImGui::SameLine();
-            common_imgui::HelpMarker("this is help makrer");
+            common_imgui::HelpMarker("This is help makrer");
 
             static float f = 0; // if not statis , val will be reset
-            ImGui::SliderFloat("this is sliderfloat", &f, 0, 1, "Process:%.3f%%");
+            ImGui::SliderFloat("This is sliderfloat", &f, 0, 1, "Process:%.3f%%");
 
             static int i = 0;
-            ImGui::SliderInt("this is sliderint", &i, 0, 100, "Process:%d%%");
+            ImGui::SliderInt("This is sliderint", &i, 0, 100, "Process:%d%%");
 
-            //ImGui::InputText("thiis is inputText", input_1,);
+
+            static ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable | ImGuiTableFlags_BordersOuter | ImGuiTableFlags_BordersV;
+
+            // Update item list if we changed the number of items
+            static ImVector<int> selection;
+            if (ImGui::BeginTable("table_advanced", 6, flags, ImVec2(0, 0), 0.0f))
+            {
+                ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed | ImGuiTableColumnFlags_NoHide, 0.0f, MyItemColumnID_ID);
+                ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Name);
+                ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 0.0f, MyItemColumnID_Action);
+                ImGui::TableSetupColumn("Quantity", ImGuiTableColumnFlags_NoSort, 0.0f, MyItemColumnID_Quantity);
+                ImGui::TableSetupColumn("Description", (flags & ImGuiTableFlags_NoHostExtendX) ? 0 : ImGuiTableColumnFlags_WidthStretch, 0.0f, MyItemColumnID_Description);
+                ImGui::TableSetupColumn("Hidden", ImGuiTableColumnFlags_DefaultHide | ImGuiTableColumnFlags_NoSort);
+                ImGui::TableSetupScrollFreeze(1, 1);
+                ImGui::TableHeadersRow();
+                ImGui::PushButtonRepeat(true);
+#if 1
+                // Demonstrate using clipper for large vertical lists
+                ImGuiListClipper clipper;
+                clipper.Begin(items.Size);
+                while (clipper.Step())
+                {
+                    for (int row_n = clipper.DisplayStart; row_n < clipper.DisplayEnd; row_n++)
+#else
+                    {
+                        for (int row_n = 0; row_n < items.Size; row_n++)
+#endif
+                        {
+                            MyItem* item = &items[row_n];
+                            //if (!filter.PassFilter(item->Name))
+                            //    continue;
+
+                            const bool item_is_selected = selection.contains(item->ID);
+                            ImGui::PushID(item->ID);
+                            ImGui::TableNextRow(ImGuiTableRowFlags_None, 0.0f);
+
+                            // For the demo purpose we can select among different type of items submitted in the first column
+                            ImGui::TableSetColumnIndex(0);
+                            char label[32];
+                            sprintf(label, "%04d", item->ID);
+                            ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
+                            if (ImGui::Selectable(label, item_is_selected, selectable_flags, ImVec2(0, 0)))
+                            {
+                                selection.clear();
+                                selection.push_back(item->ID);
+                        }
+
+                            if (ImGui::TableSetColumnIndex(1))
+                                ImGui::Text(item->Name);
+
+                            if (ImGui::TableSetColumnIndex(2))
+                            {
+                                if (ImGui::SmallButton("Chop")) { item->Quantity += 1; }
+                                ImGui::SameLine();
+                                if (ImGui::SmallButton("Eat")) { item->Quantity -= 1; }
+                            }
+
+                            if (ImGui::TableSetColumnIndex(3))
+                                ImGui::Text("%d", item->Quantity);
+
+                            if (ImGui::TableSetColumnIndex(4))
+                                ImGui::Text("Lorem ipsum dolor sit amet");
+                                
+
+                            if (ImGui::TableSetColumnIndex(5))
+                                ImGui::Text("");
+
+                            ImGui::PopID();
+                        }
+                    }
+                    ImGui::PopButtonRepeat();
+                    ImGui::EndTable();
+                }
 
             static char input_val[128] = "Hello, world!";
             if (ImGui::CollapsingHeader(u8"展开内容"))
@@ -296,9 +422,12 @@ int main(int, char**)
                 ImGui::InputText("this is label", input_val, IM_ARRAYSIZE(input_val), ImGuiInputTextFlags_CallbackEdit, Funcs::MyCallback);
             }
 
-            ImDrawList* drawList = ImGui::GetForegroundDrawList();
+            
+            
+
+            //ImDrawList* drawList = ImGui::GetForegroundDrawList();
             // draw rect
-            drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), color_red);// closed when open is false
+            //drawList->AddRect(ImVec2(200, 200), ImVec2(300, 300), color_red);// closed when open is false
 
             //static ExampleAppLog my_log;
 
@@ -314,15 +443,15 @@ int main(int, char**)
         }
         ImGui::EndFrame();
 
-        ImDrawList* drawList = ImGui::GetForegroundDrawList();
-        // draw 4 line
-        drawList->AddLine(ImVec2(100, 100), ImVec2(200, 100), color_red, 1.0f);
-        drawList->AddLine(ImVec2(200, 100), ImVec2(200, 200), color_red, 1.0f);
-        drawList->AddLine(ImVec2(100, 100), ImVec2(100, 200), color_red, 1.0f);
-        drawList->AddLine({ 100, 200 }, { 200, 200 }, color_red, 1.0f);
+        //ImDrawList* drawList = ImGui::GetForegroundDrawList();
+        //// draw 4 line
+        //drawList->AddLine(ImVec2(100, 100), ImVec2(200, 100), color_red, 1.0f);
+        //drawList->AddLine(ImVec2(200, 100), ImVec2(200, 200), color_red, 1.0f);
+        //drawList->AddLine(ImVec2(100, 100), ImVec2(100, 200), color_red, 1.0f);
+        //drawList->AddLine({ 100, 200 }, { 200, 200 }, color_red, 1.0f);
 
-        // draw text
-        drawList->AddText(ImVec2(100, 100), color_red, "this is text_begin");
+        //// draw text
+        //drawList->AddText(ImVec2(100, 100), color_red, "this is text_begin");
 
 
 
