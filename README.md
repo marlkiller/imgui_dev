@@ -15,9 +15,8 @@ cl binary_to_compressed_c.cpp
 
 ### 打包
 eg:(mono 不支持中文)
-.\binary_to_compressed_c.exe -nocompress msyh.ttc font_diy > font_diy.h 
-
-.\binary_to_compressed_c.exe -base85 JetBrainsMonoNL-Light.ttf font_diy > font_diy.h
+- ./binary_to_compressed_c -nocompress 方正兰亭细黑_GBK.TTF font_diy > fzlt_yz.h
+- ./binary_to_compressed_c -base85 方正兰亭细黑_GBK.TTF font_diy > fzlt_yz.h
 
 ### git 大文件处理
 git lfs track "font_diy.h"
