@@ -10,7 +10,7 @@
 
 ## 内存加载自定义字体
 ### 编译程序
-cd font
+cd font  
 cl binary_to_compressed_c.cpp
 
 ### 打包
