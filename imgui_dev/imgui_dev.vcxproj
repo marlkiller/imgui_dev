@@ -156,7 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common_imgui.h" />
-    <ClInclude Include="font_diy.h" />
+    <ClInclude Include="fzlt_yz.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="imgui\imconfig.h" />
     <ClInclude Include="imgui\imgui.h" />
